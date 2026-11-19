@@ -1,0 +1,20 @@
+/* Ordem obrigatória: CSS do InnovUI ANTES do Tailwind (classes internas usam prefixo iu:, sem colisão). */
+@import "@innovui/react/styles.css";
+@import "tailwindcss";
+
+/*
+ * Visual vem do InnovUI. Tailwind só para layout/ajustes pontuais via className.
+ * Cores sempre por token do design system (ex: text-(--color-text-secondary)), nunca hex.
+ * O iframe tem largura FIXA de 384px: breakpoints md:/lg: (>=768px) nunca disparam aqui.
+ */
+@layer base {
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    max-width: 384px;
+    overflow-x: hidden;
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
+  }
+}

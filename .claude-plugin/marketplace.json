@@ -1,0 +1,13 @@
+{
+  "name": "innov",
+  "owner": {
+    "name": "Matheus Santos"
+  },
+  "plugins": [
+    {
+      "name": "innov",
+      "source": "./",
+      "description": "Skills da Innov para criar e migrar iframes do Chat Plataforma e da Zappy Contabil."
+    }
+  ]
+}

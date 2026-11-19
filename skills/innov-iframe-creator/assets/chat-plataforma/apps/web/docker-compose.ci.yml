@@ -1,0 +1,9 @@
+# Só para CI e testes locais: o compose de produção (docker-compose.yml) recebe o env do Coolify.
+services:
+  iframe-name-web:
+    env_file: .env
+
+networks:
+  default:
+    name: app-net
+    external: true

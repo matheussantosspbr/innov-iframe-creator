@@ -1,0 +1,20 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "ts"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Installation {
+  id          Int      @id @default(autoincrement()) @db.UnsignedInt
+  externalId  String   @unique(map: "uq_installations_external_id") @map("external_id") @db.Char(36)
+  credentials String   @db.VarChar(4096)
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@map("installations")
+}

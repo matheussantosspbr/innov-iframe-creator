@@ -1,0 +1,8 @@
+{
+  "enabledPlugins": {
+    "ponytail@ponytail": true,
+    "caveman@caveman": true,
+    "agent-skills@addy-agent-skills": true,
+    "impeccable@impeccable": true
+  }
+}

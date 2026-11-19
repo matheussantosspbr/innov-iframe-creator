@@ -1,0 +1,25 @@
+{
+  "name": "@app/shared",
+  "author": "@matheussantosspbr",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./cnpj": "./utils/cnpj/index.ts",
+    "./masks": "./utils/masks/index.ts",
+    "./validators": "./utils/validators/index.ts",
+    "./biome": "./biome.json",
+    "./typescript": "./tsconfig.json"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

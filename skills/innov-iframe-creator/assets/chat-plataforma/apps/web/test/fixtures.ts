@@ -1,0 +1,13 @@
+export const FIXTURE_ACCOUNT_ID = '6f1c2a9e-1b2c-4d5e-8f90-123456789abc'
+export const FIXTURE_TICKET_ID = '182736454928173645'
+export const FIXTURE_AGENT_ID = '182736454928173647'
+export const FIXTURE_CONNECTION_ID = '182736454928173649'
+
+export const FIXTURE_IFRAME_SEARCH = `?${new URLSearchParams({
+  accountId: FIXTURE_ACCOUNT_ID,
+  agentId: FIXTURE_AGENT_ID,
+  ticketId: FIXTURE_TICKET_ID,
+  ticketConnectionId: FIXTURE_CONNECTION_ID,
+})}`
+
+export const FIXTURE_REQUEST_ID = '3b9d7c2e-5a41-4f8e-9c6d-1e2f3a4b5c6d'

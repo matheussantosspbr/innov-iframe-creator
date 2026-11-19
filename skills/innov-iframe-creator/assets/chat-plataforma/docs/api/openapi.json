@@ -1,0 +1,1330 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Chat Plataforma App",
+    "version": "1.0.0",
+    "description": "Respostas de sucesso vêm em { \"body\": ... } e erros em { \"error\": { \"message\": \"...\" } }."
+  },
+  "components": {
+    "securitySchemes": {
+      "hmacSignature": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-signature",
+        "description": "hex(HMAC-SHA256(clientSecret, \"<x-timestamp>:<corpo cru>\")). Usar junto com x-timestamp."
+      },
+      "hmacTimestamp": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-timestamp",
+        "description": "Milissegundos desde a epoch (aceita ±5 min). Usar junto com x-signature."
+      },
+      "diagnosticsJwt": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "HS256 com o clientSecret; claims scope \"diagnostics:read\" e externalId igual ao da URL."
+      },
+      "iframeAccountId": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-account-id",
+        "description": "accountId do iframe (= externalId da instalação)."
+      }
+    },
+    "schemas": {}
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health check",
+        "tags": [
+          "health"
+        ],
+        "description": "Sem autenticação; não depende do banco nem do Chat Plataforma.",
+        "responses": {
+          "200": {
+            "description": "Container de pé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "ok"
+                        }
+                      },
+                      "required": [
+                        "status"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "body"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Container de pé"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/provision/install": {
+      "post": {
+        "summary": "Instala o app para uma organização",
+        "tags": [
+          "provision"
+        ],
+        "description": "Chamado pelo Backstage ao salvar as credenciais pela primeira vez. Valida a API key no Chat Plataforma, cria a instalação e devolve o externalId (201).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {},
+                "description": "Objeto plano de credenciais: a chave é o label do campo cadastrado no credentialsSchema do Backstage.",
+                "example": {
+                  "API Key do Chat Plataforma": "cp-chave-de-exemplo"
+                }
+              }
+            }
+          },
+          "description": "Objeto plano de credenciais: a chave é o label do campo cadastrado no credentialsSchema do Backstage."
+        },
+        "security": [
+          {
+            "hmacSignature": [],
+            "hmacTimestamp": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Instalação criada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "externalId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Identificador da instalação devolvido pelo install.",
+                          "example": "6f1c2a9e-1b2c-4d5e-8f90-123456789abc"
+                        }
+                      },
+                      "required": [
+                        "externalId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "body"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Instalação criada"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Assinatura HMAC ausente, expirada (mais de 5 min) ou inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Assinatura HMAC ausente, expirada (mais de 5 min) ou inválida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Credencial inválida, API key recusada ou payload fora do contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Credencial inválida, API key recusada ou payload fora do contrato"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro inesperado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Erro inesperado"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Chat Plataforma indisponível na validação da API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Chat Plataforma indisponível na validação da API key"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/provision/configure": {
+      "post": {
+        "summary": "Atualiza as credenciais de uma instalação",
+        "tags": [
+          "provision"
+        ],
+        "description": "Atualização parcial: aplica os campos recebidos sobre as credenciais salvas, valida o conjunto e testa a API key antes de gravar.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "externalId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Identificador da instalação devolvido pelo install.",
+                    "example": "6f1c2a9e-1b2c-4d5e-8f90-123456789abc"
+                  },
+                  "credentials": {
+                    "type": "object",
+                    "additionalProperties": {},
+                    "description": "Só os campos enviados no save. Campo ausente ou com o placeholder de segredo = não mudou; null ou \"\" = apagado.",
+                    "example": {
+                      "API Key do Chat Plataforma": "cp-chave-de-exemplo"
+                    }
+                  }
+                },
+                "required": [
+                  "externalId",
+                  "credentials"
+                ]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "hmacSignature": [],
+            "hmacTimestamp": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credenciais atualizadas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "externalId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Identificador da instalação devolvido pelo install.",
+                          "example": "6f1c2a9e-1b2c-4d5e-8f90-123456789abc"
+                        }
+                      },
+                      "required": [
+                        "externalId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "body"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Credenciais atualizadas"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Assinatura HMAC ausente, expirada (mais de 5 min) ou inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Assinatura HMAC ausente, expirada (mais de 5 min) ou inválida"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Instalação não existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Instalação não existe"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Credencial inválida, API key recusada ou payload fora do contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Credencial inválida, API key recusada ou payload fora do contrato"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro inesperado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Erro inesperado"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Chat Plataforma indisponível na validação da API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Chat Plataforma indisponível na validação da API key"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/provision/uninstall": {
+      "post": {
+        "summary": "Desinstala o app de uma organização",
+        "tags": [
+          "provision"
+        ],
+        "description": "Idempotente: se o externalId não existe mais, responde 200 do mesmo jeito.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "externalId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Identificador da instalação devolvido pelo install.",
+                    "example": "6f1c2a9e-1b2c-4d5e-8f90-123456789abc"
+                  }
+                },
+                "required": [
+                  "externalId"
+                ]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "hmacSignature": [],
+            "hmacTimestamp": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Instalação removida (ou já inexistente)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "success"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "body"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Instalação removida (ou já inexistente)"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Assinatura HMAC ausente, expirada (mais de 5 min) ou inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Assinatura HMAC ausente, expirada (mais de 5 min) ou inválida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Credencial inválida, API key recusada ou payload fora do contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Credencial inválida, API key recusada ou payload fora do contrato"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro inesperado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Erro inesperado"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/instances/{externalId}/diagnostics": {
+      "get": {
+        "summary": "Diagnóstico da instalação",
+        "tags": [
+          "diagnostics"
+        ],
+        "description": "Chamado pelo Backstage com JWT HS256 (escopo diagnostics:read, externalId igual ao da URL). Checa o banco e a API key do Chat Plataforma.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "6f1c2a9e-1b2c-4d5e-8f90-123456789abc"
+            },
+            "in": "path",
+            "name": "externalId",
+            "required": true,
+            "description": "Identificador da instalação devolvido pelo install."
+          }
+        ],
+        "security": [
+          {
+            "diagnosticsJwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado dos componentes (operational, degraded ou outage)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "externalId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Identificador da instalação devolvido pelo install.",
+                          "example": "6f1c2a9e-1b2c-4d5e-8f90-123456789abc"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "operational",
+                            "degraded",
+                            "outage"
+                          ]
+                        },
+                        "components": {
+                          "readOnly": true,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "example": "database"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "operational",
+                                  "degraded",
+                                  "outage"
+                                ]
+                              },
+                              "detail": {
+                                "description": "Detalhe técnico da falha",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "status"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "checkedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                          "description": "ISO 8601"
+                        }
+                      },
+                      "required": [
+                        "externalId",
+                        "status",
+                        "components",
+                        "checkedAt"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "body"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Estado dos componentes (operational, degraded ou outage)"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, expirado ou de outra instalação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "JWT ausente, expirado ou de outra instalação"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Instalação não existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Instalação não existe"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro inesperado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Erro inesperado"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/app/tickets/{ticketId}": {
+      "get": {
+        "summary": "Resumo do ticket aberto no atendimento",
+        "tags": [
+          "app"
+        ],
+        "description": "Rota do iframe: usa as credenciais da instalação identificada por x-account-id para consultar o ticket no Chat Plataforma.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,20}$",
+              "example": "182736454928173645"
+            },
+            "in": "path",
+            "name": "ticketId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "x-agent-id",
+            "required": false,
+            "description": "Id do atendente (contexto do iframe)"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "x-ticket-id",
+            "required": false,
+            "description": "Id do ticket (contexto do iframe)"
+          }
+        ],
+        "security": [
+          {
+            "iframeAccountId": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ticket",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "readOnly": true,
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "protocol": {
+                          "type": "number"
+                        },
+                        "status": {
+                          "type": "number"
+                        },
+                        "priority": {
+                          "type": "number"
+                        },
+                        "frozen": {
+                          "type": "boolean"
+                        },
+                        "archived": {
+                          "type": "boolean"
+                        },
+                        "contact": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "phoneNumber": {
+                              "nullable": true,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "phoneNumber"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "group": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "agent": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "sector": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "connection": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "provider": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "provider"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "protocol",
+                        "status",
+                        "priority",
+                        "frozen",
+                        "archived",
+                        "connection"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "body"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Ticket"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "x-account-id ausente ou instalação não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "x-account-id ausente ou instalação não encontrada"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Ticket inválido ou recusado pelo Chat Plataforma",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Ticket inválido ou recusado pelo Chat Plataforma"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Chat Plataforma indisponível ou integração a reconfigurar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Chat Plataforma indisponível ou integração a reconfigurar"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Chat Plataforma limitou as chamadas (429)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Chat Plataforma limitou as chamadas (429)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/app/client-logs": {
+      "post": {
+        "summary": "Registra um log do front no servidor",
+        "tags": [
+          "app"
+        ],
+        "description": "Rota do iframe: repassa o log do navegador para o logger da API (Axiom).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "type": "string",
+                    "enum": [
+                      "error",
+                      "warn",
+                      "info"
+                    ]
+                  },
+                  "message": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "context": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "level",
+                  "message"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "x-agent-id",
+            "required": false,
+            "description": "Id do atendente (contexto do iframe)"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "x-ticket-id",
+            "required": false,
+            "description": "Id do ticket (contexto do iframe)"
+          }
+        ],
+        "security": [
+          {
+            "iframeAccountId": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log registrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "received": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "received"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "body"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Log registrado"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "x-account-id ausente ou instalação não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "x-account-id ausente ou instalação não encontrada"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Payload fora do contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Mensagem em português para o administrador ou atendente"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Payload fora do contrato"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "provision",
+      "description": "Chamadas do Backstage, assinadas com HMAC"
+    },
+    {
+      "name": "diagnostics",
+      "description": "Chamada do Backstage, autenticada com JWT"
+    },
+    {
+      "name": "app",
+      "description": "Rotas do iframe, identificadas por x-account-id"
+    },
+    {
+      "name": "health",
+      "description": "Health check do container"
+    }
+  ]
+}

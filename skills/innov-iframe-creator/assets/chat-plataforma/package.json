@@ -1,0 +1,23 @@
+{
+  "name": "chatplataforma-app",
+  "private": true,
+  "packageManager": "pnpm@12.21.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "prepare": "lefthook install || true"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.8",
+    "lefthook": "^2.2.2",
+    "turbo": "^2.11.11",
+    "typescript": "^7.0.2"
+  }
+}

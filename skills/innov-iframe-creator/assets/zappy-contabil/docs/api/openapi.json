@@ -1,0 +1,1222 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "iframe-name",
+    "version": "1.0.0",
+    "description": "Resposta de sucesso { body }, erro { error: { message } }. Rotas /api/tenants usam x-comhub-key; rotas /api/app usam x-tenant-id e x-user-id."
+  },
+  "components": {
+    "securitySchemes": {
+      "comhubKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-comhub-key",
+        "description": "Chave de operação (APPLICATION_X_COMHUB_KEY)"
+      },
+      "tenantId": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-tenant-id",
+        "description": "Id do tenant (id devolvido no cadastro)"
+      },
+      "userId": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-user-id",
+        "description": "Id do usuário da Zappy que abriu o iframe"
+      }
+    },
+    "schemas": {}
+  },
+  "paths": {
+    "/api/tenants/": {
+      "post": {
+        "summary": "Cadastra uma empresa (tenant)",
+        "tags": ["tenants"],
+        "description": "Valida a URL (https://api-<subdominio>.zapcontabil.chat) e prova o token na instância da Zappy antes de gravar. O token é cifrado em repouso e nunca é devolvido. Exige o header x-comhub-key.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "description": "Rótulo legível do cliente",
+                    "example": "Escritório Exemplo"
+                  },
+                  "zappyUrl": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "example": "https://api-exemplo.zapcontabil.chat"
+                  },
+                  "zappyToken": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256,
+                    "description": "Token de API da instância da Zappy",
+                    "example": "<token de API>"
+                  }
+                },
+                "required": ["name", "zappyUrl", "zappyToken"]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "comhubKey": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "0b9e6d4e-5a35-4d6e-9f35-6b1c1f3c9a10"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Escritório Exemplo"
+                        },
+                        "zappyUrl": {
+                          "type": "string",
+                          "example": "https://api-exemplo.zapcontabil.chat"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": ["id", "name", "zappyUrl", "active", "createdAt", "updatedAt"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["body"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave de operação ausente ou inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Chave de operação ausente ou inválida.",
+                  "example": {
+                    "error": {
+                      "message": "Chave de operação ausente ou inválida."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Já existe uma empresa cadastrada com esta URL da Zappy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Já existe uma empresa cadastrada com esta URL da Zappy.",
+                  "example": {
+                    "error": {
+                      "message": "Já existe uma empresa cadastrada com esta URL da Zappy."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "A Zappy recusou o token de API. Gere um novo token na instância e tente novamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "A Zappy recusou o token de API. Gere um novo token na instância e tente novamente.",
+                  "example": {
+                    "error": {
+                      "message": "A Zappy recusou o token de API. Gere um novo token na instância e tente novamente."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Não foi possível validar o token agora porque a instância da Zappy não respondeu. Tente novamente em instantes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Não foi possível validar o token agora porque a instância da Zappy não respondeu. Tente novamente em instantes.",
+                  "example": {
+                    "error": {
+                      "message": "Não foi possível validar o token agora porque a instância da Zappy não respondeu. Tente novamente em instantes."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Lista as empresas cadastradas",
+        "tags": ["tenants"],
+        "description": "Não inclui o token. Exige o header x-comhub-key.",
+        "security": [
+          {
+            "comhubKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "0b9e6d4e-5a35-4d6e-9f35-6b1c1f3c9a10"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Escritório Exemplo"
+                          },
+                          "zappyUrl": {
+                            "type": "string",
+                            "example": "https://api-exemplo.zapcontabil.chat"
+                          },
+                          "active": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "required": ["id", "name", "zappyUrl", "active", "createdAt", "updatedAt"],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": ["body"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave de operação ausente ou inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Chave de operação ausente ou inválida.",
+                  "example": {
+                    "error": {
+                      "message": "Chave de operação ausente ou inválida."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tenants/{tenantId}": {
+      "patch": {
+        "summary": "Ativa ou desativa uma empresa",
+        "tags": ["tenants"],
+        "description": "Empresa inativa perde o acesso às rotas do iframe (403). Exige o header x-comhub-key.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "boolean",
+                    "example": false
+                  }
+                },
+                "required": ["active"]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 36,
+              "example": "0b9e6d4e-5a35-4d6e-9f35-6b1c1f3c9a10"
+            },
+            "in": "path",
+            "name": "tenantId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "comhubKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "active": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["id", "active"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["body"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave de operação ausente ou inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Chave de operação ausente ou inválida.",
+                  "example": {
+                    "error": {
+                      "message": "Chave de operação ausente ou inválida."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Empresa não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Empresa não encontrada.",
+                  "example": {
+                    "error": {
+                      "message": "Empresa não encontrada."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "O aplicativo recebeu dados que não reconhece. Tente novamente ou avise o suporte do aplicativo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "O aplicativo recebeu dados que não reconhece. Tente novamente ou avise o suporte do aplicativo.",
+                  "example": {
+                    "error": {
+                      "message": "O aplicativo recebeu dados que não reconhece. Tente novamente ou avise o suporte do aplicativo."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove uma empresa",
+        "tags": ["tenants"],
+        "description": "Apaga a empresa e o token cifrado. Exige o header x-comhub-key.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 36,
+              "example": "0b9e6d4e-5a35-4d6e-9f35-6b1c1f3c9a10"
+            },
+            "in": "path",
+            "name": "tenantId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "comhubKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["id"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["body"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chave de operação ausente ou inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Chave de operação ausente ou inválida.",
+                  "example": {
+                    "error": {
+                      "message": "Chave de operação ausente ou inválida."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Empresa não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Empresa não encontrada.",
+                  "example": {
+                    "error": {
+                      "message": "Empresa não encontrada."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/app/connections": {
+      "get": {
+        "summary": "Lista as conexões de WhatsApp da empresa",
+        "tags": ["app"],
+        "description": "Consulta a instância da Zappy da empresa. Exige x-tenant-id e x-user-id.",
+        "security": [
+          {
+            "tenantId": [],
+            "userId": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number",
+                            "example": 1
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Comercial"
+                          },
+                          "status": {
+                            "type": "string",
+                            "example": "CONNECTED"
+                          }
+                        },
+                        "required": ["id", "name", "status"],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": ["body"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Não foi possível identificar a empresa e o usuário. Abra o app pela Zappy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Não foi possível identificar a empresa e o usuário. Abra o app pela Zappy.",
+                  "example": {
+                    "error": {
+                      "message": "Não foi possível identificar a empresa e o usuário. Abra o app pela Zappy."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "O acesso da sua empresa ao aplicativo está desativado. Avise o administrador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "O acesso da sua empresa ao aplicativo está desativado. Avise o administrador.",
+                  "example": {
+                    "error": {
+                      "message": "O acesso da sua empresa ao aplicativo está desativado. Avise o administrador."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Esta empresa não está cadastrada no aplicativo. Avise o administrador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Esta empresa não está cadastrada no aplicativo. Avise o administrador.",
+                  "example": {
+                    "error": {
+                      "message": "Esta empresa não está cadastrada no aplicativo. Avise o administrador."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Não conseguimos falar com a Zappy agora. Tente novamente em instantes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Não conseguimos falar com a Zappy agora. Tente novamente em instantes.",
+                  "example": {
+                    "error": {
+                      "message": "Não conseguimos falar com a Zappy agora. Tente novamente em instantes."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/app/tickets/{ticketId}": {
+      "get": {
+        "summary": "Consulta um atendimento",
+        "tags": ["app"],
+        "description": "Devolve só os campos usados pelo app. Consulta a instância da Zappy da empresa. Exige x-tenant-id e x-user-id.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,15}$",
+              "example": "9001"
+            },
+            "in": "path",
+            "name": "ticketId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "tenantId": [],
+            "userId": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "9001"
+                        },
+                        "status": {
+                          "example": "open",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "isGroup": {
+                          "nullable": true,
+                          "type": "boolean"
+                        },
+                        "unreadMessages": {
+                          "example": 2,
+                          "nullable": true,
+                          "type": "number"
+                        },
+                        "contactId": {
+                          "example": "55",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "userId": {
+                          "example": "7",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "queueId": {
+                          "example": "3",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "whatsappId": {
+                          "example": "1",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "example": "2026-01-01T10:00:00.000Z",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "example": "2026-01-01T10:05:00.000Z",
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["id"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["body"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Não foi possível identificar a empresa e o usuário. Abra o app pela Zappy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Não foi possível identificar a empresa e o usuário. Abra o app pela Zappy.",
+                  "example": {
+                    "error": {
+                      "message": "Não foi possível identificar a empresa e o usuário. Abra o app pela Zappy."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "O acesso da sua empresa ao aplicativo está desativado. Avise o administrador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "O acesso da sua empresa ao aplicativo está desativado. Avise o administrador.",
+                  "example": {
+                    "error": {
+                      "message": "O acesso da sua empresa ao aplicativo está desativado. Avise o administrador."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Não encontramos este atendimento.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Não encontramos este atendimento.",
+                  "example": {
+                    "error": {
+                      "message": "Não encontramos este atendimento."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Não foi possível processar os dados enviados. Revise e tente novamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Não foi possível processar os dados enviados. Revise e tente novamente.",
+                  "example": {
+                    "error": {
+                      "message": "Não foi possível processar os dados enviados. Revise e tente novamente."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Não conseguimos falar com a Zappy agora. Tente novamente em instantes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Não conseguimos falar com a Zappy agora. Tente novamente em instantes.",
+                  "example": {
+                    "error": {
+                      "message": "Não conseguimos falar com a Zappy agora. Tente novamente em instantes."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/app/client-logs": {
+      "post": {
+        "summary": "Registra um log do frontend",
+        "tags": ["app"],
+        "description": "Grava no log da API (com o requestId) uma mensagem enviada pelo iframe. Exige x-tenant-id e x-user-id.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "type": "string",
+                    "enum": ["error", "warn", "info"],
+                    "example": "error"
+                  },
+                  "message": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "example": "Falha ao carregar a tela"
+                  },
+                  "context": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": ["level", "message"]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "tenantId": [],
+            "userId": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "received": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["received"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["body"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Não foi possível identificar a empresa e o usuário. Abra o app pela Zappy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Não foi possível identificar a empresa e o usuário. Abra o app pela Zappy.",
+                  "example": {
+                    "error": {
+                      "message": "Não foi possível identificar a empresa e o usuário. Abra o app pela Zappy."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "O acesso da sua empresa ao aplicativo está desativado. Avise o administrador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "O acesso da sua empresa ao aplicativo está desativado. Avise o administrador.",
+                  "example": {
+                    "error": {
+                      "message": "O acesso da sua empresa ao aplicativo está desativado. Avise o administrador."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Esta empresa não está cadastrada no aplicativo. Avise o administrador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Esta empresa não está cadastrada no aplicativo. Avise o administrador.",
+                  "example": {
+                    "error": {
+                      "message": "Esta empresa não está cadastrada no aplicativo. Avise o administrador."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Não foi possível processar os dados enviados. Revise e tente novamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["message"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["error"],
+                  "additionalProperties": false,
+                  "description": "Não foi possível processar os dados enviados. Revise e tente novamente.",
+                  "example": {
+                    "error": {
+                      "message": "Não foi possível processar os dados enviados. Revise e tente novamente."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3333",
+      "description": "Desenvolvimento local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "tenants",
+      "description": "Operação: cadastro de empresas (x-comhub-key)"
+    },
+    {
+      "name": "app",
+      "description": "Iframe: rotas do tenant (x-tenant-id e x-user-id)"
+    }
+  ]
+}

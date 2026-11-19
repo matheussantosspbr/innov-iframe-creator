@@ -1,0 +1,5 @@
+{
+  "extends": "@app/shared/typescript",
+  "compilerOptions": { "types": ["node"] },
+  "include": ["src", "tests", "prisma.config.ts", "vitest.config.ts"]
+}

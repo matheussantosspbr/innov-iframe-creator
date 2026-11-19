@@ -1,0 +1,56 @@
+# Infra local (MySQL e Redis), na raiz do repo: `docker compose -f docker-compose.dev.yml ...`
+# Config fixa aqui; os apps só recebem as URLs pelo .env de cada um (apps/api/.env).
+# Sobe tudo o que está neste arquivo: docker compose -f docker-compose.dev.yml up -d
+# O scaffold deixa aqui só os serviços escolhidos (MySQL, Redis de filas, Redis de cache).
+# Cria a rede app-net, usada pelos composes de apps/api e apps/web (API e web em container).
+services:
+  mysql:
+    image: mysql:8.4 # mesma versão do DBaaS de produção
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: app
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app
+      MYSQL_ROOT_PASSWORD: root
+    ports: ["3306:3306"]
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis-queue:
+    image: redis:8-alpine
+    restart: unless-stopped
+    # Fila (BullMQ): noeviction + AOF, para nunca perder job.
+    command: redis-server --appendonly yes --maxmemory-policy noeviction
+    ports: ["6379:6379"]
+    volumes: [redis-queue-data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis-cache:
+    image: redis:8-alpine
+    restart: unless-stopped
+    # Cache: descarta as chaves menos usadas ao encher e não persiste em disco.
+    command: redis-server --appendonly no --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports: ["6380:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql-data:
+  redis-queue-data:
+
+networks:
+  default:
+    name: app-net

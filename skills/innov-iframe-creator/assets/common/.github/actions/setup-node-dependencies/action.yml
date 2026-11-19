@@ -1,0 +1,21 @@
+name: Setup Node Dependencies
+description: Instala pnpm, Node e as dependências do monorepo (com cache)
+inputs:
+  node-version:
+    description: Versão do Node
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v6
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
