@@ -43,7 +43,7 @@ Ela faz um questionário, uma pergunta por vez:
 2. **Plataforma:** em Criação, para qual plataforma é o iframe; em Migração, a direção (Zappy para Chat Plataforma, ou o contrário).
 3. **Nome do iframe** (por exemplo `Pipedrive`). Dele saem o nome da pasta, os serviços do compose, o dataset do Axiom e os pacotes.
 4. **Só em Migração:** o nome do repositório de origem (um, ou dois se for frontend e backend separados). A skill procura **no seu computador**, nunca na internet, e trata a origem como somente leitura.
-5. **Serviços locais**, em caixas de seleção: MySQL, Redis de filas, Redis de cache. Só os marcados entram no `docker-compose.dev.yml`.
+5. **Só em Criação: serviços locais**, em caixas de seleção: MySQL, Redis de filas, Redis de cache. Só os marcados entram no `docker-compose.dev.yml`.
 
 Depois ela gera o projeto com o `scripts/scaffold.sh`. Em Migração, ela segue um fluxo de engenharia reversa: levanta as regras de negócio da origem, monta a tabela de equivalências para a plataforma de destino, escreve a spec e executa em etapas com os agentes `backend`, `frontend` e `qa` do projeto gerado, que trabalham em paralelo quando as tarefas são independentes.
 
@@ -96,6 +96,7 @@ skills/innov-iframe-creator/
 - **Portas:** backend 3333, frontend 8080, nos dois templates.
 - **Node 24** e pnpm 12. O pnpm 12 recusa versões publicadas há menos de 24 horas, então atualize dependências com `pnpm update -r --latest` e, se a instalação acusar a violação, baixe o pacote para a versão anterior.
 - **Deploy:** nenhum compose usa `ports:` (o Coolify não aceita). A porta vem do `EXPOSE` do Dockerfile.
+- **Migrations no deploy:** o `ENTRYPOINT` da API (`apps/api/docker-entrypoint.sh`) roda `prisma migrate deploy` e depois `exec node src/server/server.ts` (TypeScript nativo do Node 24, sem build). Se a migration falhar, o container não sobe. Comite `prisma/migrations` antes do deploy.
 
 ## Como alterar a skill
 
