@@ -90,14 +90,14 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {},
-                "description": "Objeto plano de credenciais: a chave é o label do campo cadastrado no credentialsSchema do Backstage.",
+                "description": "Objeto plano de credenciais: a chave é o value do campo cadastrado no credentialsSchema do Backstage.",
                 "example": {
-                  "API Key do Chat Plataforma": "cp-chave-de-exemplo"
+                  "chatPlataformaApiKey": "cp-chave-de-exemplo"
                 }
               }
             }
           },
-          "description": "Objeto plano de credenciais: a chave é o label do campo cadastrado no credentialsSchema do Backstage."
+          "description": "Objeto plano de credenciais: a chave é o value do campo cadastrado no credentialsSchema do Backstage."
         },
         "security": [
           {
@@ -286,7 +286,7 @@
                     "additionalProperties": {},
                     "description": "Só os campos enviados no save. Campo ausente ou com o placeholder de segredo = não mudou; null ou \"\" = apagado.",
                     "example": {
-                      "API Key do Chat Plataforma": "cp-chave-de-exemplo"
+                      "chatPlataformaApiKey": "cp-chave-de-exemplo"
                     }
                   }
                 },

@@ -12,7 +12,7 @@ if (!apiKey) throw new Error('Defina CHATPLATAFORMA_TEST_API_KEY com uma key de 
 const arg = process.argv.slice(2).find((a) => a.startsWith('{'))
 const credentials = arg
   ? JSON.parse(arg)
-  : { [CREDENTIAL_FIELDS.chatPlataformaApiKey.label]: apiKey }
+  : { [CREDENTIAL_FIELDS.chatPlataformaApiKey.value]: apiKey }
 const raw = JSON.stringify(credentials)
 const ts = String(Date.now())
 

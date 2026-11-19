@@ -31,10 +31,10 @@ Feito por um super agente Comhub em Backstage → Aplicativos.
 String JSON no formato próprio do Backstage:
 
 ```json
-{ "fields": [ { "label": "API Key do Chat Plataforma", "type": "string", "required": true, "secret": true } ] }
+{ "fields": [ { "value": "chatPlataformaApiKey", "label": "API Key do Chat Plataforma", "type": "string", "required": true, "secret": true } ] }
 ```
 
-- `label`: até 80 caracteres. **É a chave do objeto que o app recebe.** Renomear um label no Backstage muda a chave sem avisar o app.
+- `value`: **é a chave do objeto que o app recebe.** `label`: até 80 caracteres, só exibição. Renomear um value no Backstage muda a chave sem avisar o app.
 - `type`: `string` | `number` | `boolean`. A plataforma confere com `typeof`: `"443"` não passa num campo `number`.
 - `required`: só é exigido no **install** (ver §3). `secret`: o valor aparece mascarado (`••••••••`) para o admin.
 - `id`: opcional, gerado pelo Backstage. O app não usa.
@@ -89,7 +89,7 @@ Todas: `POST {rootUrl}{path}`, `Content-Type: application/json`, corpo = `JSON.s
 
 | Rota no app | Corpo recebido | Status aceitos ⚠ | Resposta exigida |
 |---|---|---|---|
-| `POST /api/provision/install` | ⚠ **objeto plano** de credenciais, chave = label: `{ "API Key do Chat Plataforma": "abc" }`. Sem wrapper `credentials`. | **200 ou 201** (204 = erro) | `{ "body": { "externalId": "..." } }` |
+| `POST /api/provision/install` | ⚠ **objeto plano** de credenciais, chave = `value` do campo: `{ "chatPlataformaApiKey": "abc" }`. Sem wrapper `credentials`. | **200 ou 201** (204 = erro) | `{ "body": { "externalId": "..." } }` |
 | `POST /api/provision/configure` | `{ "externalId": "...", "credentials": { ... } }` | **200 ou 204** (201 = erro) | `{ "body": { "externalId": "..." } }` (o corpo não é lido) |
 | `POST /api/provision/uninstall` | `{ "externalId": "..." }` | **200 ou 204** (201 = erro) | `{ "body": { "success": true } }` (o corpo não é lido) |
 | `GET /api/instances/:externalId/diagnostics` | — (Bearer JWT) | **200** | `{ "body": { "externalId", "status", "components": [...], "checkedAt" } }` |
@@ -97,7 +97,7 @@ Todas: `POST {rootUrl}{path}`, `Content-Type: application/json`, corpo = `JSON.s
 ### install
 - Recebe só os campos que o admin preencheu. A plataforma já garantiu `required` e `typeof`.
 - ⚠ Se o app responder `{ "externalId": "..." }` sem o envelope `body`, a plataforma grava `ACTIVE` **com externalId nulo** sem erro algum: o iframe abre sem `accountId` e o próximo save chama `install` de novo.
-- O template: lê pelos labels, valida com zod (422 citando o label), **testa a API key em `GET /v1/me/permissions`** (key recusada → 422 explicando o que fazer; sem as `REQUIRED_PERMISSIONS` → 422 listando-as), gera um UUID, cifra e grava. Responde 201.
+- O template: lê pelos values, valida com zod (422 citando o label), **testa a API key em `GET /v1/me/permissions`** (key recusada → 422 explicando o que fazer; sem as `REQUIRED_PERMISSIONS` → 422 listando-as), gera um UUID, cifra e grava. Responde 201.
 
 ### configure ⚠ atualização parcial
 - `credentials` traz **só os campos enviados no save**, não o conjunto salvo. Campo ausente = não mudou.

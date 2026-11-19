@@ -20,7 +20,7 @@ docker compose -f docker-compose.dev.yml up -d
 pnpm --filter api db:migrate --name init   # primeira vez (comite prisma/migrations)
 pnpm dev                                   # api :3333 + web :8080 (Vite faz proxy de /api)
 CHATPLATAFORMA_TEST_API_KEY=<key de uma conta de teste> pnpm --filter api dev:install
-# assina e envia o install como o Backstage (corpo plano, chave = label do campo) e imprime a URL que simula o iframe
+# assina e envia o install como o Backstage (corpo plano, chave = value do campo) e imprime a URL que simula o iframe
 ```
 
 Swagger: http://localhost:3333/api/docs · Guia para importar no Apidog: `docs/api/README.md` (regenerar: `pnpm --filter api openapi:schema > docs/api/openapi.json`) · Stack completa em containers: `docker compose -f docker-compose.dev.yml up -d` (cria a rede `app-net`), depois `docker compose -f apps/api/docker-compose.yml up -d --build` e `docker compose -f apps/web/docker-compose.yml up -d --build` (o web não publica porta no host, porque o Coolify não aceita `ports:`; para ver a tela localmente use `pnpm dev`)
@@ -28,7 +28,7 @@ Swagger: http://localhost:3333/api/docs · Guia para importar no Apidog: `docs/a
 ## Cadastro no Backstage
 
 - `rootUrl`: domínio público do container web, na raiz, **sem barra final** (até 100 caracteres). A plataforma concatena `{rootUrl}/api/...`.
-- `credentialsSchema`: cole a saída de `pnpm --filter api credentials:schema` (formato `{ "fields": [...] }` do Backstage, não JSON Schema). O `label` de cada campo é a chave que o app recebe: **não renomeie um label no Backstage sem mudar `CREDENTIAL_FIELDS`**.
+- `credentialsSchema`: cole a saída de `pnpm --filter api credentials:schema` (formato `{ "fields": [...] }` do Backstage, não JSON Schema). O `value` de cada campo é a chave que o app recebe (o `label` é só exibição): **não renomeie um value no Backstage sem mudar `CREDENTIAL_FIELDS`**.
 - `clientSecret`: gerado pelo Backstage ao criar o app (64 hex, aparece uma vez). Vai em `CHATPLATAFORMA_CLIENT_SECRET`. Rotacionar no Backstage invalida o antigo na hora: atualize a env do container no mesmo momento.
 
 ## Deploy (Coolify, um recurso por app)

@@ -16,7 +16,8 @@ export const FIXTURE_ROTATED_CREDENTIALS: Credentials = {
 }
 
 export const API_KEY_LABEL = CREDENTIAL_FIELDS.chatPlataformaApiKey.label
-export const FIXTURE_INSTALL_BODY = { [API_KEY_LABEL]: FIXTURE_CREDENTIALS.chatPlataformaApiKey }
+export const API_KEY_VALUE = CREDENTIAL_FIELDS.chatPlataformaApiKey.value
+export const FIXTURE_INSTALL_BODY = { [API_KEY_VALUE]: FIXTURE_CREDENTIALS.chatPlataformaApiKey }
 export const FIXTURE_MASKED_SECRET = MASKED_SECRET
 
 export const FIXTURE_ADMIN_PERMISSIONS = { isAdmin: true, permissions: [] }

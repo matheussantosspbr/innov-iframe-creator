@@ -11,6 +11,7 @@ export const CREDENTIAL_TYPE = Object.freeze({
 export type CredentialType = ValueOf<typeof CREDENTIAL_TYPE>
 
 type CredentialField = Readonly<{
+  value: string
   label: string
   type: CredentialType
   required: boolean
@@ -19,6 +20,7 @@ type CredentialField = Readonly<{
 
 export const CREDENTIAL_FIELDS = Object.freeze({
   chatPlataformaApiKey: Object.freeze({
+    value: 'chatPlataformaApiKey',
     label: 'API Key do Chat Plataforma',
     type: CREDENTIAL_TYPE.string,
     required: true,
@@ -56,7 +58,7 @@ export const applyPlatformCredentials = (
 ): Partial<Record<CredentialKey, unknown>> => {
   const next: Partial<Record<CredentialKey, unknown>> = { ...current }
   for (const [key, field] of CREDENTIAL_ENTRIES) {
-    const value = received[field.label]
+    const value = received[field.value]
     if (isUnchanged(value)) continue
     if (isCleared(value)) delete next[key]
     else next[key] = value
@@ -86,6 +88,7 @@ export const toValidCredentials = (candidate: Partial<Record<string, unknown>>):
 
 export const toBackstageCredentialsSchema = () => ({
   fields: CREDENTIAL_ENTRIES.map(([, field]) => ({
+    value: field.value,
     label: field.label,
     type: field.type,
     required: field.required,
