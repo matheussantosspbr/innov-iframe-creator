@@ -1,7 +1,8 @@
 {
   "name": "innov",
   "owner": {
-    "name": "Matheus Santos"
+    "name": "Matheus Santos",
+    "email": "matheussantosspbr@gmail.com"
   },
   "plugins": [
     {

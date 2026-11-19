@@ -1,9 +1,9 @@
 {
   "name": "iframe-name",
-  "author": "@matheussantosspbr",
+  "author": "Matheus Santos <matheussantosspbr@gmail.com> (https://github.com/matheussantosspbr)",
   "description": "This project is a base project for iframe integrations with Comhub.",
   "version": "1.0.0",
-  "license": "ISC",
+  "license": "MIT",
   "private": true,
   "devEngines": {
     "packageManager": {
