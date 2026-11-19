@@ -1,6 +1,6 @@
 {
   "name": "@app/shared",
-  "author": "@matheussantosspbr",
+  "author": "Matheus Santos <matheussantosspbr@gmail.com> (https://github.com/matheussantosspbr)",
   "private": true,
   "type": "module",
   "exports": {

@@ -1,5 +1,6 @@
 {
   "name": "chatplataforma-app",
+  "author": "Matheus Santos <matheussantosspbr@gmail.com> (https://github.com/matheussantosspbr)",
   "private": true,
   "packageManager": "pnpm@12.21.0",
   "engines": {
