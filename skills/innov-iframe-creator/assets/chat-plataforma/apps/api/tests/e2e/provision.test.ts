@@ -6,6 +6,7 @@ import { REQUIRED_PERMISSIONS } from '#src/infrastructure/libs/chatplataforma/pe
 import { PROVISION_TIMEOUT_MS } from '#src/infrastructure/use-cases/assert-api-key-works.ts'
 import {
   API_KEY_LABEL,
+  API_KEY_VALUE,
   FIXTURE_CREDENTIALS,
   FIXTURE_EXTERNAL_ID,
   FIXTURE_INSTALL_BODY,
@@ -33,15 +34,23 @@ const rejectedApiKey = (upstreamStatus: number | null) => ({
 })
 
 describe('credentialsSchema no formato do Backstage', () => {
-  it('gera { fields: [{ label, type, required, secret }] } a partir de CREDENTIAL_FIELDS', () => {
+  it('gera { fields: [{ value, label, type, required, secret }] } a partir de CREDENTIAL_FIELDS', () => {
     expect(toBackstageCredentialsSchema()).toEqual({
-      fields: [{ label: API_KEY_LABEL, type: 'string', required: true, secret: true }],
+      fields: [
+        {
+          value: API_KEY_VALUE,
+          label: API_KEY_LABEL,
+          type: 'string',
+          required: true,
+          secret: true,
+        },
+      ],
     })
   })
 })
 
 describe('Contrato de provisionamento: POST /api/provision/install', () => {
-  it('responde 201 com { body: { externalId } } em UUID v4 para o corpo plano indexado pelo label', async () => {
+  it('responde 201 com { body: { externalId } } em UUID v4 para o corpo plano indexado pelo value', async () => {
     const { postSigned } = await makeApp()
 
     const res = await postSigned(INSTALL, FIXTURE_INSTALL_BODY)
@@ -61,10 +70,14 @@ describe('Contrato de provisionamento: POST /api/provision/install', () => {
     })
   })
 
-  it('ignora chaves que não são labels de CREDENTIAL_FIELDS', async () => {
+  it('ignora chaves que não são values de CREDENTIAL_FIELDS (inclusive o label)', async () => {
     const { postSigned, repo } = await makeApp()
 
-    const res = await postSigned(INSTALL, { ...FIXTURE_INSTALL_BODY, 'Campo antigo': 'x' })
+    const res = await postSigned(INSTALL, {
+      ...FIXTURE_INSTALL_BODY,
+      [API_KEY_LABEL]: 'x',
+      'Campo antigo': 'x',
+    })
 
     expect((await repo.find(res.body.body.externalId))?.credentials).toEqual(FIXTURE_CREDENTIALS)
   })
@@ -80,8 +93,8 @@ describe('Contrato de provisionamento: POST /api/provision/install', () => {
 
   it.each([
     ['o campo obrigatório está ausente', {}],
-    ['o campo obrigatório veio vazio', { [API_KEY_LABEL]: '' }],
-    ['o valor excede o tamanho máximo', { [API_KEY_LABEL]: 'k'.repeat(513) }],
+    ['o campo obrigatório veio vazio', { [API_KEY_VALUE]: '' }],
+    ['o valor excede o tamanho máximo', { [API_KEY_VALUE]: 'k'.repeat(513) }],
     [
       'o corpo veio no formato { credentials } da documentação antiga',
       { credentials: FIXTURE_INSTALL_BODY },
@@ -236,7 +249,7 @@ describe('Contrato de provisionamento: POST /api/provision/configure (atualizaç
 
     const res = await postSigned(CONFIGURE, {
       externalId: FIXTURE_EXTERNAL_ID,
-      credentials: { [API_KEY_LABEL]: FIXTURE_ROTATED_CREDENTIALS.chatPlataformaApiKey },
+      credentials: { [API_KEY_VALUE]: FIXTURE_ROTATED_CREDENTIALS.chatPlataformaApiKey },
     })
 
     expect(res).toBeSuccessEnvelope(200)
@@ -246,7 +259,7 @@ describe('Contrato de provisionamento: POST /api/provision/configure (atualizaç
 
   it.each([
     ['o campo não foi enviado', {}],
-    ['o campo secreto veio com a máscara ••••••••', { [API_KEY_LABEL]: FIXTURE_MASKED_SECRET }],
+    ['o campo secreto veio com a máscara ••••••••', { [API_KEY_VALUE]: FIXTURE_MASKED_SECRET }],
   ])('mantém a credential salva quando %s', async (_rule, credentials) => {
     const { postSigned, install, repo } = await makeApp()
     await install()
@@ -263,7 +276,7 @@ describe('Contrato de provisionamento: POST /api/provision/configure (atualizaç
 
     const res = await postSigned(CONFIGURE, {
       externalId: FIXTURE_EXTERNAL_ID,
-      credentials: { [API_KEY_LABEL]: '' },
+      credentials: { [API_KEY_VALUE]: '' },
     })
 
     expect(res).toBeErrorEnvelope(422)
@@ -277,7 +290,7 @@ describe('Contrato de provisionamento: POST /api/provision/configure (atualizaç
 
     const res = await postSigned(CONFIGURE, {
       externalId: FIXTURE_EXTERNAL_ID,
-      credentials: { [API_KEY_LABEL]: FIXTURE_ROTATED_CREDENTIALS.chatPlataformaApiKey },
+      credentials: { [API_KEY_VALUE]: FIXTURE_ROTATED_CREDENTIALS.chatPlataformaApiKey },
     })
 
     expect(res.body.error.message).toBe(ADMIN_MESSAGES.invalidApiKey)

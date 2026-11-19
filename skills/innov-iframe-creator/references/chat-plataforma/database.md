@@ -51,7 +51,7 @@ Ele fica em `apps/api/src/generated/prisma`:
 | `credentials` | `VARCHAR(4096)` | JSON cifrado (AES-256-GCM, base64). O zod limita cada campo (`.max`) e o JSON a 2900 bytes, para caber cifrado. |
 | `created_at` / `updated_at` | `DATETIME(3)` | |
 
-**Por que dois identificadores:** o Chat Plataforma não manda ID próprio no install. O corpo traz só as credenciais (indexadas pelo label do campo), e é o app que gera o `externalId` e devolve. Esse valor precisa ser imprevisível, porque aparece na URL do iframe. Já como chave de junção, um inteiro sequencial é menor e mais rápido (4 bytes contra 36), e deixa a URL desacoplada do modelo relacional.
+**Por que dois identificadores:** o Chat Plataforma não manda ID próprio no install. O corpo traz só as credenciais (indexadas pelo value do campo), e é o app que gera o `externalId` e devolve. Esse valor precisa ser imprevisível, porque aparece na URL do iframe. Já como chave de junção, um inteiro sequencial é menor e mais rápido (4 bytes contra 36), e deixa a URL desacoplada do modelo relacional.
 
 ## Exemplo: tabela do app (verificado em MariaDB)
 

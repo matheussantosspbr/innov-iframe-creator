@@ -8,11 +8,11 @@ import {
   PLATFORM_SIGNATURE_SECURITY,
 } from './common.schemas.ts'
 
-const credentialsExample = { [CREDENTIAL_FIELDS.chatPlataformaApiKey.label]: 'cp-chave-de-exemplo' }
+const credentialsExample = { [CREDENTIAL_FIELDS.chatPlataformaApiKey.value]: 'cp-chave-de-exemplo' }
 
 const flatCredentials = platformCredentialsSchema.meta({
   description:
-    'Objeto plano de credenciais: a chave é o label do campo cadastrado no credentialsSchema do Backstage.',
+    'Objeto plano de credenciais: a chave é o value do campo cadastrado no credentialsSchema do Backstage.',
   example: credentialsExample,
 })
 

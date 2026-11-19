@@ -57,7 +57,7 @@ post_signed() { # $1=caminho  $2=corpo JSON
     -H 'content-type: application/json' -H "x-timestamp: $TS" -H "x-signature: $SIG" -d "$2"
 }
 
-post_signed /api/provision/install '{"API Key do Chat Plataforma":"cp-chave-de-exemplo"}'
+post_signed /api/provision/install '{"chatPlataformaApiKey":"cp-chave-de-exemplo"}'
 ```
 
 Resposta real (executada contra a API com repositório em memória):
@@ -96,14 +96,14 @@ curl -sS $BASE/api/health
 
 ### `POST /api/provision/install`
 
-Corpo: objeto plano, chave = label do campo do `credentialsSchema` (aqui `API Key do Chat Plataforma`). Exemplo na seção do HMAC (201).
+Corpo: objeto plano, chave = `value` do campo do `credentialsSchema` (aqui `chatPlataformaApiKey`; o `label` é só exibição). Exemplo na seção do HMAC (201).
 
 ### `POST /api/provision/configure`
 
 Atualização parcial: só os campos enviados mudam; `••••••••` = não mudou; `null` ou `""` = apagado.
 
 ```bash
-post_signed /api/provision/configure "{\"externalId\":\"$EXT\",\"credentials\":{\"API Key do Chat Plataforma\":\"cp-chave-nova\"}}"
+post_signed /api/provision/configure "{\"externalId\":\"$EXT\",\"credentials\":{\"chatPlataformaApiKey\":\"cp-chave-nova\"}}"
 ```
 ```
 {"body":{"externalId":"e12b311d-cbab-4d17-9565-6df7b36efb4a"}}

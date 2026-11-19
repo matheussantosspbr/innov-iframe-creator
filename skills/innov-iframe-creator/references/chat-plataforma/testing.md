@@ -25,7 +25,7 @@ Três pastas: `support/` (harness), `unit/` (sem HTTP) e `e2e/` (HTTP com supert
 | `unit/core/utils/diagnostics.test.ts` | Código puro do core (agregação do status do diagnóstico). |
 | `unit/architecture.test.ts` | Lê os imports de `src/` e falha se uma camada violar a regra de dependência (core importando infrastructure/presentation/server/fastify/Prisma, presentation importando infrastructure, controller importando repository, Prisma fora do repository). Ver `references/chat-plataforma/architecture.md` §3. |
 | `unit/infrastructure/infra.test.ts` | Config do MySQL a partir do `DATABASE_URL` (senha com URL-encode, porta padrão, TLS × `allowPublicKeyRetrieval`) e variáveis de ambiente do banco. |
-| `e2e/*.test.ts` | Uma suíte por contrato: `provision` (corpo plano por label, configure parcial com máscara, validação da API key, uninstall idempotente, HMAC), `diagnostics` (JWT), `app` (rotas do iframe, cliente do Chat Plataforma: envelope, projeção, mapeamento 401/403/429/4xx/5xx/rede; cifra das credentials), `observability` (`requestId`, mensagens sem detalhe técnico, campos de busca, eventos, ausência de credentials no log) e `health` (`/api/health`). |
+| `e2e/*.test.ts` | Uma suíte por contrato: `provision` (corpo plano por value, configure parcial com máscara, validação da API key, uninstall idempotente, HMAC), `diagnostics` (JWT), `app` (rotas do iframe, cliente do Chat Plataforma: envelope, projeção, mapeamento 401/403/429/4xx/5xx/rede; cifra das credentials), `observability` (`requestId`, mensagens sem detalhe técnico, campos de busca, eventos, ausência de credentials no log) e `health` (`/api/health`). |
 
 ### `makeApp(fakes?)`
 
@@ -64,7 +64,7 @@ As fixtures de IDs do Chat Plataforma são **strings** de 18 dígitos. Os testes
 - erro de dependência (Chat Plataforma, sistema externo) refletido como 502 ou no diagnóstico.
 - use case novo: um teste por regra em `tests/unit/infrastructure/use-cases/` (`use-cases.test.ts` ou `<acao>.use-case.test.ts` quando crescer), sem HTTP.
 - método novo no cliente do Chat Plataforma: teste com `fetcher` falso respondendo o envelope real `{ message, body }`, provando o path exato e que campos fora do schema (dados sensíveis) não passam.
-- campo novo de credencial: install com o label, configure parcial (ausente e `••••••••` mantêm o valor) e 422 citando o label.
+- campo novo de credencial: install com o value, configure parcial (ausente e `••••••••` mantêm o valor) e 422 citando o label.
 
 ## Web (`apps/web/test`)
 
