@@ -1,3 +1,4 @@
+import type { PrismaClient } from '@prisma/client'
 import type {
   NewTenant,
   Tenant,
@@ -6,7 +7,6 @@ import type {
 } from '#src/core/repository/tenant.repository.interface.ts'
 import { AppError } from '#src/core/utils/app-error.ts'
 import { ADMIN_MESSAGES } from '#src/core/utils/messages.ts'
-import type { PrismaClient } from '#src/generated/prisma/client.ts'
 import { decrypt, encrypt } from '#src/infrastructure/libs/crypto.ts'
 
 const UNIQUE_VIOLATION = 'P2002'

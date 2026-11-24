@@ -83,7 +83,7 @@ Alias `#src/*` (campo `imports` do `package.json`) para imports entre camadas; o
 - um **controller** importa repository;
 - uma **route** importa use case de `infrastructure/use-cases`;
 - a **infrastructure** importa `presentation` ou `server`;
-- qualquer arquivo fora de `infrastructure/repository/`, `infrastructure/libs/prisma*` e `server/server.ts` importa `generated/prisma`.
+- qualquer arquivo fora de `infrastructure/repository/`, `infrastructure/libs/prisma*` e `server/server.ts` importa `@prisma/client`.
 
 Além disso:
 - Routes recebem a autenticação por opção (`authenticate`), montada no `bootstrap.ts` com o middleware de `server/middlewares/`. Assim a route não importa `server`.
@@ -219,7 +219,7 @@ model ProcessedEvent {
 A interface (`ProcessedEventRepository`: `markProcessed`, `unmark`) fica em `core/repository/processed-event.repository.interface.ts`; a implementação em `infrastructure/repository/processed-event.repository.ts`:
 
 ```ts
-import { Prisma, type PrismaClient } from '#src/generated/prisma/client.ts'
+import { Prisma, type PrismaClient } from '@prisma/client'
 
 export const createProcessedEventRepository = (prisma: PrismaClient) => ({
   markProcessed: async (installationId: number, source: string, eventId: string) => {

@@ -2,7 +2,7 @@
 
 Base de iframe da Zappy Contabil (monorepo pnpm + Turborepo + Biome). Largura do iframe: **420px**.
 
-Origem: branch `zappy` do repositório `iframe-base`. O texto `iframe-name` é o placeholder do nome do projeto (serviços e containers do compose, título do Swagger e da aba); o `scripts/scaffold.sh` da skill o troca pelo nome real.
+Origem: branch `zappy` do repositório `iframe-base`. O texto `iframe-name` é o placeholder do nome do projeto (serviços e containers, título do Swagger e da aba); o `scripts/scaffold.sh` da skill o troca pelo nome real.
 
 ## Estrutura
 
@@ -16,9 +16,9 @@ packages/shared schemas zod e constantes compartilhados (contexto do iframe, hea
 - Navegação em memória (`apps/web/src/lib/navigation.tsx`): a URL nunca muda.
 - ZDK: contrato em `apps/api/src/core/repository/zappy-client.interface.ts`, implementação em `infrastructure/libs/zappy/client.ts` (uma instância por tenant, via `ZappyClientFor`).
 - Tenants: o model `Tenant` (`prisma/schema.prisma`) guarda a URL da instância e o token da Zappy **cifrado** (AES-256-GCM, `APPLICATION_ENCRYPTION_KEY`). O primeiro projeto roda `pnpm --filter api db:migrate --name init` e acrescenta os models dele.
-- `docker-compose.dev.yml` (MySQL e Redis para desenvolvimento, cria a rede `app-net`), igual ao do Chat Plataforma. Não há compose de staging: o CI testa o `docker-compose.yml` de cada app.
+- `docker-compose.dev.yml` (MySQL e Redis para desenvolvimento, cria a rede `app-net`), igual ao do Chat Plataforma. Não há compose de app: o deploy usa só o Dockerfile e o CI testa a imagem de cada app com `docker build` e `docker run`.
 - `docs/`: arquitetura, escopo, segurança e features. `.claude/agents`: `frontend`, `backend` e `qa`. `CLAUDE.md`: regras do projeto.
-- `.github/workflows/ci-cd.yml`: CI/CD igual ao do Chat Plataforma (vem de `assets/common`): só o que mudou, lint, testes, build, teste do compose e deploy no Coolify só se tudo passar. Secrets: `COOLIFY_TOKEN`, `COOLIFY_WEBHOOK_API`, `COOLIFY_WEBHOOK_WEB`.
+- `.github/workflows/ci-cd.yml`: CI/CD igual ao do Chat Plataforma (vem de `assets/common`): só o que mudou, lint, testes, build, teste da imagem Docker e deploy no Coolify só se tudo passar. Secrets: `COOLIFY_TOKEN`, `COOLIFY_WEBHOOK_API`, `COOLIFY_WEBHOOK_WEB`.
 
 ## Rotas prontas
 
@@ -58,4 +58,4 @@ pnpm dev                                   # api :3333 + web :8080 (Vite faz pro
 
 Abra http://localhost:8080/?tenantId=1&userId=1. Swagger: http://localhost:3333/api/docs. Testes: `pnpm test`; tipos: `pnpm typecheck`; lint: `pnpm lint`.
 
-Stack em containers: `docker compose -f docker-compose.dev.yml up -d` (cria a rede `app-net`), depois `docker compose -f apps/api/docker-compose.yml -f apps/api/docker-compose.ci.yml up -d --build` e o mesmo para `apps/web`. O web não publica porta no host (o Coolify não aceita `ports:`).
+Stack em containers: `docker compose -f docker-compose.dev.yml up -d` (cria a rede `app-net`), depois `docker build -f apps/api/Dockerfile -t iframe-name-api .` e `docker build -f apps/web/Dockerfile -t iframe-name-web .`, e `docker run -d --network app-net --name iframe-name-api --env-file apps/api/.env iframe-name-api` e `docker run -d --network app-net --name iframe-name-web --env-file apps/web/.env iframe-name-web`. O web não publica porta no host (o Coolify não aceita `ports:`).

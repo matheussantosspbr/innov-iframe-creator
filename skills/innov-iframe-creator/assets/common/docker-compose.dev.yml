@@ -2,7 +2,7 @@
 # Config fixa aqui; os apps só recebem as URLs pelo .env de cada um (apps/api/.env).
 # Sobe tudo o que está neste arquivo: docker compose -f docker-compose.dev.yml up -d
 # O scaffold deixa aqui só os serviços escolhidos (MySQL, Redis de filas, Redis de cache).
-# Cria a rede app-net, usada pelos composes de apps/api e apps/web (API e web em container).
+# Cria a rede app-net, usada pelos containers de apps/api e apps/web (docker run --network app-net).
 services:
   mysql:
     image: mysql:8.4 # mesma versão do DBaaS de produção

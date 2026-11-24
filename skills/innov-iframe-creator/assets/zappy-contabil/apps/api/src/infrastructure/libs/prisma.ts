@@ -1,5 +1,5 @@
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
-import { PrismaClient } from '#src/generated/prisma/client.ts'
+import { PrismaClient } from '@prisma/client'
 import { mariaDbConfigFrom } from './database.ts'
 
 export const createPrismaClient = (

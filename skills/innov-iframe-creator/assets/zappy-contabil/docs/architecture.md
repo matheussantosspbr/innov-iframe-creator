@@ -88,9 +88,9 @@ Escopo do backend:
 			server.ts # arquivo de start (porta 3333)
 ```
 
-- o monorepo tem 1 docker-compose na raiz do projeto, o de dev ( docker-compose.dev.yml ), usaremos só para o desenvolvimento, ( para nos usar um mysql, redis e etc... ). Não há compose de staging: o teste de build e de subida dos containers é feito pelo CI (`.github/workflows/ci-cd.yml`) com o `docker-compose.yml` de cada app
+- o monorepo tem 1 docker-compose na raiz do projeto, o de dev ( docker-compose.dev.yml ), usaremos só para o desenvolvimento, ( para nos usar um mysql, redis e etc... ). Não há compose de app nem de staging: o teste de build e de subida dos containers é feito pelo CI (`.github/workflows/ci-cd.yml`) com `docker build` e `docker run` do Dockerfile de cada app
 
-- cada projeto isolado ( web e api ) tem docker compose proprio, é eles que serão usados em produção ( o mysql nunca fica no docker compose de produção, pois usamos um serviço esterno )
+- cada projeto isolado ( web e api ) sobe só pelo seu Dockerfile em produção, sem docker compose ( o mysql nunca fica no container de produção, pois usamos um serviço externo ). Restart, limites de CPU/memória e rotação de logs ficam no Coolify
 
 - As imagens do docker que vai para produção deve ser o mais leve possivel e otimizado, para rodar tudo que precisamos.
 

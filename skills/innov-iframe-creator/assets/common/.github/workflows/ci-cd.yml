@@ -48,7 +48,7 @@ jobs:
               - 'apps/api/**'
 
   web:
-    name: Web (lint, testes, build e compose)
+    name: Web (lint, testes, build e docker)
     needs: changes
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
@@ -82,22 +82,25 @@ jobs:
           done
           exit 0
 
-      - name: Rede do compose
+      - name: Rede
         run: docker network create app-net
 
-      - name: Docker compose (build e subida)
-        run: docker compose -f apps/web/docker-compose.yml -f apps/web/docker-compose.ci.yml up -d --build --wait --wait-timeout 240
+      - name: Docker (build e subida)
+        run: |
+          docker build -f apps/web/Dockerfile -t iframe-name-web .
+          docker run -d --name iframe-name-web --network app-net --env-file apps/web/.env iframe-name-web
+          timeout 240 sh -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" iframe-name-web)" = healthy ]; do sleep 3; done'
 
-      - name: Logs do compose
+      - name: Logs do container
         if: failure()
-        run: docker compose -f apps/web/docker-compose.yml -f apps/web/docker-compose.ci.yml logs --no-color
+        run: docker logs iframe-name-web
 
-      - name: Derrubar compose
+      - name: Derrubar container
         if: always()
-        run: docker compose -f apps/web/docker-compose.yml -f apps/web/docker-compose.ci.yml down -v
+        run: docker rm -f iframe-name-web
 
   api:
-    name: API (lint, testes, build e compose)
+    name: API (lint, testes, build e docker)
     needs: changes
     if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
@@ -150,7 +153,7 @@ jobs:
           done
           sed -i "s|^APPLICATION_ENCRYPTION_KEY=.*|APPLICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)|; s|^CHATPLATAFORMA_CLIENT_SECRET=.*|CHATPLATAFORMA_CLIENT_SECRET=$(openssl rand -hex 32)|" apps/api/.env
 
-      - name: Infraestrutura do compose (MySQL e rede)
+      - name: Infraestrutura (MySQL e rede)
         run: |
           docker network create app-net
           docker run -d --name mysql --network app-net --network-alias mysql \
@@ -159,18 +162,20 @@ jobs:
             --health-interval 5s --health-timeout 5s --health-retries 20 mysql:8.4
           until [ "$(docker inspect -f '{{.State.Health.Status}}' mysql)" = healthy ]; do sleep 3; done
 
-      - name: Docker compose (build e subida)
-        run: docker compose -f apps/api/docker-compose.yml -f apps/api/docker-compose.ci.yml up -d --build --wait --wait-timeout 240
-
-      - name: Logs do compose
-        if: failure()
-        run: docker compose -f apps/api/docker-compose.yml -f apps/api/docker-compose.ci.yml logs --no-color
-
-      - name: Derrubar compose
-        if: always()
+      - name: Docker (build e subida)
         run: |
-          docker compose -f apps/api/docker-compose.yml -f apps/api/docker-compose.ci.yml down -v
-          docker rm -f mysql
+          docker build -f apps/api/Dockerfile -t iframe-name-api .
+          docker run -d --name iframe-name-api --network app-net --env-file apps/api/.env \
+            -e DATABASE_URL=mysql://app:app@mysql:3306/app -e NODE_ENV=production iframe-name-api
+          timeout 240 sh -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" iframe-name-api)" = healthy ]; do sleep 3; done'
+
+      - name: Logs do container
+        if: failure()
+        run: docker logs iframe-name-api
+
+      - name: Derrubar containers
+        if: always()
+        run: docker rm -f iframe-name-api mysql
 
   # Só chega aqui se nada falhou. Com o deploy automático do Coolify (GitHub App) desligado,
   # este é o único gatilho de deploy, e só do que mudou.
