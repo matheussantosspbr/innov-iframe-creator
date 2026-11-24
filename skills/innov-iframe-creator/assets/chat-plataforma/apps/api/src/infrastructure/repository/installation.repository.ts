@@ -1,9 +1,9 @@
+import type { PrismaClient } from '@prisma/client'
 import type {
   Installation,
   InstallationRepository,
 } from '#src/core/repository/installation.repository.interface.ts'
 import type { Credentials } from '#src/core/utils/credentials.ts'
-import type { PrismaClient } from '#src/generated/prisma/client.ts'
 import { decrypt, encrypt } from '#src/infrastructure/libs/crypto.ts'
 
 const freezeInstallation = (installation: Installation): Installation =>

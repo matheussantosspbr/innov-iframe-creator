@@ -35,12 +35,10 @@ Leia antes de criar ou alterar qualquer model.
 
 ## Prisma 7: o `output` no generator
 
-No generator novo, `prisma-client`, o `output` é **obrigatório**: o Prisma 7 não gera mais o client dentro de `node_modules/@prisma/client`, e sem `output` o `prisma generate` falha. É a forma recomendada. O client vira código do projeto, que o Node 24 executa direto (`importFileExtension = "ts"`).
+O generator é o `prisma-client-js`, sem `output`: o client é gerado dentro de `node_modules/@prisma/client` e não existe pasta `generated` no projeto. O generator novo (`prisma-client`) exige `output` e gera o client dentro do `src`, por isso não é usado aqui.
 
-Ele fica em `apps/api/src/generated/prisma`:
-- está no `.gitignore`;
-- é regenerado por `dev`, `test`, `typecheck` e pelo Dockerfile;
-- é importado como `./generated/prisma/client.ts`.
+- é regenerado por `dev`, `test`, `typecheck` e pelo Dockerfile (`prisma generate`);
+- é importado como `@prisma/client`.
 
 ## Tabela `installations` (já no template)
 

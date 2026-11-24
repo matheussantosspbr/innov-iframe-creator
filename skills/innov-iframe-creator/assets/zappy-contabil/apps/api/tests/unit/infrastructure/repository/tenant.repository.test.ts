@@ -1,6 +1,6 @@
+import type { PrismaClient } from '@prisma/client'
 import { describe, expect, it } from 'vitest'
 import type { TenantRepository } from '#src/core/repository/tenant.repository.interface.ts'
-import type { PrismaClient } from '#src/generated/prisma/client.ts'
 import { decrypt } from '#src/infrastructure/libs/crypto.ts'
 import {
   createMemoryTenantRepository,

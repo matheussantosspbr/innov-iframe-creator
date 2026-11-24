@@ -34,7 +34,7 @@ const violations = (files: ReturnType<typeof under>, forbidden: (specifier: stri
 
 const inLayer = (spec: string, ...layers: string[]) =>
   layers.some((layer) => spec === layer || spec.startsWith(`${layer}/`))
-const isPrisma = (spec: string) => /^generated\/prisma|^@prisma\//.test(spec)
+const isPrisma = (spec: string) => /^@prisma\//.test(spec)
 const isFastify = (spec: string) => /^fastify($|[-/])|^@fastify\//.test(spec)
 
 describe('Clean Architecture: core ← infrastructure | presentation ← server', () => {
@@ -94,7 +94,7 @@ describe('Clean Architecture: core ← infrastructure | presentation ← server'
     expect(
       violations(
         sources.filter(({ file }) => !allowed(file)),
-        (spec) => /^generated\/prisma/.test(spec),
+        (spec) => /^@prisma\/client/.test(spec),
       ),
     ).toEqual([])
   })
