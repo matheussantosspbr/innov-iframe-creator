@@ -2,7 +2,7 @@
 # Copia o template do app (monorepo pnpm) para <destino>, aplica o nome do projeto e gera o .env de desenvolvimento.
 # Uso: [PLATFORM=chat-plataforma|zappy-contabil] [SERVICES=mysql,redis-queue,redis-cache] bash scaffold.sh <destino> <nome-kebab> ["Nome de exibição"]
 #   PLATFORM: template usado, de assets/<PLATFORM> (padrão: chat-plataforma)
-#   nome-kebab: pacote raiz, dataset do Axiom e placeholder `iframe-name` dos compose (ex.: pipedrive, pedidos-erp)
+#   nome-kebab: pacote raiz, dataset do Axiom e placeholder `iframe-name` (containers, Dockerfile e CI) (ex.: pipedrive, pedidos-erp)
 #   No Chat Plataforma o placeholder e o dataset levam o sufixo -cp (onvio-cp-api, onvio-cp); na Zappy ficam só com o nome (onvio-api, onvio)
 #   Nome de exibição: README, título da aba e do Swagger (padrão: derivado do nome-kebab, ex.: "Pedidos Erp")
 #   SERVICES: serviços locais do docker-compose.dev.yml, separados por vírgula: mysql,redis-queue,redis-cache (padrão: os três; vazio = sem compose de dev)
@@ -38,7 +38,7 @@ const { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } = require
 const { join } = require('node:path')
 const [dest, name, displayArg, platform] = process.argv.slice(2)
 const display = displayArg || name.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ')
-// Nome usado nos serviços de compose e no dataset do Axiom: <nome>-cp no Chat Plataforma, <nome> na Zappy.
+// Nome usado nos containers e serviços do compose de dev e no dataset do Axiom: <nome>-cp no Chat Plataforma, <nome> na Zappy.
 const slug = platform === 'chat-plataforma' ? `${name}-cp` : name
 const html = display.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const jsLiteral =
@@ -62,7 +62,7 @@ for (const [file, from, to] of edits) {
   }
   writeFileSync(path, content.replace(from, () => to))
 }
-// Placeholder `iframe-name` (serviços e redes dos compose etc.) vira o nome do projeto, com sufixo -cp no Chat Plataforma.
+// Placeholder `iframe-name` (containers, Dockerfile, CI e compose de dev) vira o nome do projeto, com sufixo -cp no Chat Plataforma.
 const walk = (dir) =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.name === 'node_modules' || e.name === '.git'

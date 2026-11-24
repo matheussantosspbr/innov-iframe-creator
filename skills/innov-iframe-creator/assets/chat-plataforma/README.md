@@ -23,7 +23,7 @@ CHATPLATAFORMA_TEST_API_KEY=<key de uma conta de teste> pnpm --filter api dev:in
 # assina e envia o install como o Backstage (corpo plano, chave = value do campo) e imprime a URL que simula o iframe
 ```
 
-Swagger: http://localhost:3333/api/docs · Guia para importar no Apidog: `docs/api/README.md` (regenerar: `pnpm --filter api openapi:schema > docs/api/openapi.json`) · Stack completa em containers: `docker compose -f docker-compose.dev.yml up -d` (cria a rede `app-net`), depois `docker compose -f apps/api/docker-compose.yml up -d --build` e `docker compose -f apps/web/docker-compose.yml up -d --build` (o web não publica porta no host, porque o Coolify não aceita `ports:`; para ver a tela localmente use `pnpm dev`)
+Swagger: http://localhost:3333/api/docs · Guia para importar no Apidog: `docs/api/README.md` (regenerar: `pnpm --filter api openapi:schema > docs/api/openapi.json`) · Stack completa em containers: `docker compose -f docker-compose.dev.yml up -d` (cria a rede `app-net`), depois `docker build -f apps/api/Dockerfile -t iframe-name-api .` e `docker build -f apps/web/Dockerfile -t iframe-name-web .`, e `docker run -d --network app-net --name iframe-name-api --env-file apps/api/.env iframe-name-api` e `docker run -d --network app-net --name iframe-name-web --env-file apps/web/.env iframe-name-web` (o web não publica porta no host, porque o Coolify não aceita `ports:`; para ver a tela localmente use `pnpm dev`)
 
 ## Cadastro no Backstage
 
@@ -38,6 +38,8 @@ Swagger: http://localhost:3333/api/docs · Guia para importar no Apidog: `docs/a
 | web (domínio público) | `apps/web/Dockerfile` | `APPLICATION_API_URL`, `APPLICATION_FRAME_ANCESTORS` |
 | api (rede interna) | `apps/api/Dockerfile` | `apps/api/.env.example` (inclui `AXIOM_TOKEN`/`AXIOM_DATASET`) |
 
+Política de restart `unless-stopped`, limites de CPU/memória e rotação de logs (`--log-driver json-file --log-opt max-size=10m --log-opt max-file=3`) não cabem no Dockerfile: configure no Coolify (Resources / Advanced / Custom Docker Options).
+
 Banco em produção: MySQL 8 do DBaaS (Magalu Cloud), acessível só pela VPC, com banco e usuário próprios do app (privilégios de DDL para o `prisma migrate deploy` que roda no start). `DATABASE_TLS=true` se o banco aceitar TLS; `DATABASE_POOL_SIZE` por réplica.
 
-Build context = raiz do repo. Auto-deploy desligado: `.github/workflows/ci-cd.yml` roda só o que mudou (web e/ou api): lint, typecheck, testes, build e teste do docker compose; na `main`, se tudo passou, chama o webhook do Coolify só do app alterado. Secrets: `COOLIFY_TOKEN`, `COOLIFY_WEBHOOK_API`, `COOLIFY_WEBHOOK_WEB`.
+Build context = raiz do repo. Auto-deploy desligado: `.github/workflows/ci-cd.yml` roda só o que mudou (web e/ou api): lint, typecheck, testes, build e teste da imagem Docker (sobe o container e espera o healthcheck); na `main`, se tudo passou, chama o webhook do Coolify só do app alterado. Secrets: `COOLIFY_TOKEN`, `COOLIFY_WEBHOOK_API`, `COOLIFY_WEBHOOK_WEB`.

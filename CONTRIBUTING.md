@@ -69,7 +69,7 @@ Teste os dois templates quando a mudança for em `assets/common/` ou no `scaffol
 
 - **Variáveis de ambiente** sempre com prefixo de dono: `APPLICATION_` para o que é do app e o nome do serviço para o resto (`DATABASE_`, `REDIS_`, `AXIOM_`, `CHATPLATAFORMA_`...). Exceções só para as definidas por terceiros (`NODE_ENV`, `MYSQL_*`, `PNPM_HOME`, `VITE_*`). Cada app mantém o seu `.env.example`.
 - **Portas:** backend 3333, frontend 8080, nos dois templates.
-- **Deploy:** nenhum compose usa `ports:` (o Coolify não aceita). A porta vem do `EXPOSE` do Dockerfile.
+- **Deploy:** o deploy usa só o Dockerfile de cada app; compose existe só para desenvolvimento (`docker-compose.dev.yml`). A porta vem do `EXPOSE` do Dockerfile (o Coolify não aceita `ports:`). Restart, limites de CPU/memória e rotação de logs ficam no Coolify.
 - **Lint e formato:** o projeto usa Biome. Rode `pnpm exec biome check .` antes de commitar.
 - **Documentação:** se o comportamento da skill mudou, atualize o `SKILL.md` e os arquivos em `references/` no mesmo pull request.
 

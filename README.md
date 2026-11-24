@@ -41,7 +41,7 @@ Ela faz um questionário, uma pergunta por vez:
 
 1. **Tipo:** Criação ou Migração.
 2. **Plataforma:** em Criação, para qual plataforma é o iframe; em Migração, a direção (Zappy para Chat Plataforma, ou o contrário).
-3. **Nome do iframe** (por exemplo `Pipedrive`). Dele saem o nome da pasta, os serviços do compose, o dataset do Axiom e os pacotes.
+3. **Nome do iframe** (por exemplo `Pipedrive`). Dele saem o nome da pasta, os serviços do compose de dev, o dataset do Axiom e os pacotes.
 4. **Só em Migração:** o nome do repositório de origem (um, ou dois se for frontend e backend separados). A skill procura **no seu computador**, nunca na internet, e trata a origem como somente leitura.
 5. **Só em Criação: serviços locais**, em caixas de seleção: MySQL, Redis de filas, Redis de cache. Só os marcados entram no `docker-compose.dev.yml`.
 
@@ -88,14 +88,14 @@ skills/innov-iframe-creator/
   - **Chat Plataforma:** provisionamento (`/api/provision/*` com HMAC), diagnóstico com JWT, rota de exemplo de tickets e logs do front.
   - **Zappy:** tenants (`/api/tenants`, protegidas por `x-comhub-key`), rotas do iframe via ZDK (`/api/app/connections` e `/api/app/tickets/:ticketId`) e o middleware `tenant-context`. Não traz login nem rotas de negócio.
 - `apps/web`: React + Vite + Tailwind v4 + InnovUI + TanStack Query, com navegação em memória e tratamento de erro. Servido por nginx na porta 8080, com `Content-Security-Policy: frame-ancestors` por plataforma.
-- **CI/CD** (`.github/workflows/ci-cd.yml`): roda só o que mudou (web e/ou api): lint, typecheck, testes unitários e e2e, build e teste do docker compose. O deploy no Coolify só acontece em push na `main`, só do que mudou, e só se nada falhou. Com o GitHub App do Coolify, desligue o deploy automático. Secrets: `COOLIFY_TOKEN`, `COOLIFY_WEBHOOK_API`, `COOLIFY_WEBHOOK_WEB`.
+- **CI/CD** (`.github/workflows/ci-cd.yml`): roda só o que mudou (web e/ou api): lint, typecheck, testes unitários e e2e, build e teste da imagem Docker (sobe o container e espera o healthcheck). O deploy no Coolify só acontece em push na `main`, só do que mudou, e só se nada falhou. Com o GitHub App do Coolify, desligue o deploy automático. Secrets: `COOLIFY_TOKEN`, `COOLIFY_WEBHOOK_API`, `COOLIFY_WEBHOOK_WEB`.
 
 ## Regras da base
 
 - **Variáveis de ambiente** sempre com prefixo de dono: `APPLICATION_` para o que é do app, e o nome do serviço para o resto (`DATABASE_`, `REDIS_`, `AXIOM_`, `CHATPLATAFORMA_`...). Exceções só das definidas por terceiros (`NODE_ENV`, `MYSQL_*`, `PNPM_HOME`, `VITE_*`). Cada app tem o seu `.env.example`.
 - **Portas:** backend 3333, frontend 8080, nos dois templates.
 - **Node 24** e pnpm 12. O pnpm 12 recusa versões publicadas há menos de 24 horas, então atualize dependências com `pnpm update -r --latest` e, se a instalação acusar a violação, baixe o pacote para a versão anterior.
-- **Deploy:** nenhum compose usa `ports:` (o Coolify não aceita). A porta vem do `EXPOSE` do Dockerfile.
+- **Deploy:** o deploy usa só o Dockerfile de cada app; compose existe só para desenvolvimento (`docker-compose.dev.yml`). A porta vem do `EXPOSE` do Dockerfile (o Coolify não aceita `ports:`). Restart, limites de CPU/memória e rotação de logs ficam no Coolify.
 - **Migrations no deploy:** o `ENTRYPOINT` da API (`apps/api/docker-entrypoint.sh`) roda `prisma migrate deploy` e depois `exec node src/server/server.ts` (TypeScript nativo do Node 24, sem build). Se a migration falhar, o container não sobe. Comite `prisma/migrations` antes do deploy.
 
 ## Como alterar a skill

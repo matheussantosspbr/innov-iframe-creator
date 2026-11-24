@@ -22,6 +22,6 @@ COPY --from=install /repo /repo
 WORKDIR /repo/apps/api
 USER node
 EXPOSE 3333
-HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+HEALTHCHECK --interval=5s --timeout=3s --start-period=30s --retries=5 \
   CMD wget -qO- http://127.0.0.1:${APPLICATION_PORT:-3333}/api/health >/dev/null || exit 1
 ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
